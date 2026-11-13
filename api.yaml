@@ -1,0 +1,209 @@
+openapi: 3.0.3
+
+info:
+  title: Study Task Tracker API
+  description: API для управления учебными задачами.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /tasks:
+    get:
+      summary: Получить список учебных задач
+      operationId: getTasks
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Фильтрация задач по статусу
+          schema:
+            type: string
+            enum: [pending, in_progress, completed]
+      responses:
+        '200':
+          description: Список задач успешно получен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Указан недопустимый статус
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    
+    post:
+      summary: Создать учебную задачу
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '200':
+          description: Задача успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Некорректные данные задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /tasks/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Идентификатор учебной задачи
+        schema:
+          type: integer
+          minimum: 1
+
+    get:
+      summary: Получить учебную задачу по ID
+      operationId: getTaskById
+      responses:
+        '200':
+          description: Задача успешно получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    put:
+      summary: Обновить учебную задачу
+      operationId: updateTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Задача успешно обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Некорректные данные задачи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    delete:
+      summary: Удалить учебную задачу
+      operationId: deleteTask
+      responses:
+        '200':
+          description: Задача успешно удалена
+        '404':
+          description: Задача не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+components:
+  schemas:
+    TaskResponse:
+      type: object
+      required:
+        - id
+        - title
+        - subject
+        - dueDate
+        - status
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          example: 1
+        title:
+          type: string
+          minLength: 1
+          example: Complete SQL homework
+        subject:
+          type: string
+          minLength: 1
+          example: Databases
+        dueDate:
+          type: string
+          format: date
+          example: "2026-11-20"
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+          example: pending
+
+    TaskCreate:
+      type: object
+      required:
+        - title
+        - subject
+        - dueDate
+      properties:
+        title:
+          type: string
+          minLength: 1
+        subject:
+          type: string
+          minLength: 1
+        dueDate:
+          type: string
+          format: date
+
+    TaskUpdate:
+      type: object
+      required:
+        - title
+        - subject
+        - dueDate
+        - status
+      properties:
+        title:
+          type: string
+          minLength: 1
+        subject:
+          type: string
+          minLength: 1
+        dueDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+
+    ApiError:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Task not found
